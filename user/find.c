@@ -20,9 +20,15 @@ void find(char* path, char* name)
   }
 
   if (fstat(fd, &st) < 0) {
-    fprintf(2, "ls: cannot stat %s\n", path);
+    fprintf(2, "find: cannot stat %s\n", path);
     close(fd);
     return;
+  }
+
+  if (st.type != T_DIR) {
+    fprintf(2, "find: <%s> is not a dir\n", path);
+    close(fd);
+    return; 
   }
 
   if (strlen(path) + 1 + DIRSIZ + 1 > sizeof(buf)) {
@@ -38,10 +44,11 @@ void find(char* path, char* name)
   while (read(fd, &de, sizeof(de)) == sizeof(de)) {
     if (de.inum == 0)
       continue;
-
+    
     memmove(p, de.name, DIRSIZ);
     p[DIRSIZ] = 0;
 
+    
     // 若文件/目录的名字匹配，打印
     if (strcmp(de.name, name) == 0) {
       fprintf(1, "%s\n", buf);
@@ -65,7 +72,7 @@ void find(char* path, char* name)
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
-    fprintf(2, "find <root> <name>");
+    fprintf(2, "find <root> <name>\n");
     exit(1);
   }
 
